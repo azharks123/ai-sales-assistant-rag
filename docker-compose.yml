@@ -9,25 +9,26 @@ services:
       - .env
     environment:
       - REDIS_HOST=redis
-      - POSTGRES_HOST=postgres
+      - DB_HOST=postgres
     depends_on:
       - redis
       - postgres
     volumes:
       - .:/app
+      - /app/.venv
 
   redis:
-    image: redis:7-alpine
+    image: redis:latest
     ports:
       - "6379:6379"
 
   postgres:
-    image: ankane/pgvector:latest
+    image: pgvector/pgvector:pg17
     restart: always
     environment:
-      POSTGRES_DB: cars_db
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: mysecretpassword
     ports:
       - "5432:5432"
     volumes:

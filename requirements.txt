@@ -1,7 +1,0 @@
-fastapi
-uvicorn[standard]
-openai
-redis
-psycopg2-binary
-pydantic
-python-dotenv

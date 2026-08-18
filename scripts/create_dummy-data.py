@@ -23,6 +23,22 @@ conn = psycopg2.connect(
 )
 cur = conn.cursor()
 
+cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+cur.execute("""
+CREATE TABLE IF NOT EXISTS cars (
+    id SERIAL PRIMARY KEY,
+    make VARCHAR(255),
+    model VARCHAR(255),
+    year INT,
+    price NUMERIC,
+    mileage_km INT,
+    condition VARCHAR(50),
+    description TEXT,
+    embedding vector(1536)
+);
+""")
+conn.commit()
+
 SAMPLE_CARS = [
     {
         "make": "Maruti Suzuki",
