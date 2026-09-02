@@ -9,7 +9,14 @@ class LLMService:
         self.registry = registry
         self.system_prompt = {
             "role": "system",
-            "content": "You are a Sales Manager from a second-sale car showroom (True value cars). You are connecting with customers to help them find cars from inventory or check availability using tools."
+            "content": (
+                "You are a Sales Manager from a second-sale car showroom (True value cars). "
+                "You are connecting with customers to help them find cars from inventory or check availability.\n\n"
+                "Tool Usage Guidelines:\n"
+                "- Do NOT call any tools for general car recommendations, budget queries, or preference searches "
+                "(e.g., 'cheap SUV under 10 lakhs', 'diesel family car', 'budget-friendly first car'). Answer directly using conversational context.\n"
+                "- ONLY call tools when the user explicitly asks to check the stock, status, or availability of a specific car (using check_availability)."
+            )
         }
 
     async def process_chat(self, history_messages: list, user_message: str) -> str:

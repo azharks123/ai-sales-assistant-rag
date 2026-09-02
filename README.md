@@ -9,26 +9,27 @@ Built to explore the core architecture behind production LLM applications: state
 A user chats with an AI "Sales Manager" persona about buying a used car. The assistant:
 
 - Remembers the ongoing conversation across turns (session-based memory)
-- Retrieves relevant cars from a real inventory database based on the user's query
+- Dynamically uses **Tool Calling (Function Calling)** to retrieve relevant cars via semantic search or check live availability for specific vehicles
 - Responds using actual pricing, mileage, and condition data — not made-up details
+- Built on a modular, production-ready **FastAPI Layered Architecture**
 - Runs as a fully containerized service (FastAPI + Postgres + Redis)
 
 ## Architecture
 
-```
+Our application uses a clean **Layered Architecture** (`core`, `api`, `services`, `tools`) and augments the LLM with dynamic tool calling capabilities.
+
+```text
 User message
   │
   ▼
-Embed query (OpenAI text-embedding-3-small)
+Load conversation history (Redis) & inject Persona System Prompt
   │
   ▼
-Vector similarity search (PostgreSQL + pgvector)
+Chat completion (OpenAI, async) with injected Tool Schema (search_cars, check_availability)
   │
-  ▼
-Build context: persona prompt + retrieved inventory + conversation history (Redis)
-  │
-  ▼
-Chat completion (OpenAI, async)
+  ├──► [If model decides to call tool]
+  │    └──► Execute Tool (e.g., Vector Search via PostgreSQL / pgvector)
+  │    └──► Append tool result to context & trigger second Chat completion
   │
   ▼
 Store new turn in Redis → Return response to user
@@ -36,9 +37,11 @@ Store new turn in Redis → Return response to user
 
 **Key design decisions:**
 
+- **Layered Structure** — clean separation of concerns using routers, service classes, schemas, and a central tool registry.
+- **Dynamic Tool Calling** — instead of hardcoded RAG, the LLM makes autonomous decisions to invoke tools (`search_cars` for semantic search, `check_availability` for specific stock lookups). 
 - **Stateless LLM calls, external memory** — every request reconstructs the full message context from Redis; the model itself holds no state between calls.
-- **Retrieval is query-scoped, not stored** — inventory context is fetched fresh on every turn based on the current message, keeping responses grounded in up-to-date data rather than stale cached context.
 - **Session-based, auto-expiring memory** — conversations are keyed per user in Redis with a TTL, so idle sessions clean themselves up automatically.
+- **Automated Evaluations** — dedicated eval scripts testing retrieval and tool-calling accuracy.
 
 ## Tech stack
 
@@ -102,8 +105,8 @@ This project was a hands-on introduction to applied LLM engineering, moving from
 ## Possible next steps
 
 - Multi-turn-aware retrieval (use recent conversation context, not just the latest message, to search inventory)
-- Function/tool calling — e.g., letting the model check live availability or book a test drive
-- Automated retrieval evaluation against a test query set
+- Additional Tool Integrations — e.g., letting the model book a test drive or schedule an appointment
+- Comprehensive CI/CD integration for the evaluation test sets
 - Streaming responses for a more natural chat experience
 
 ---

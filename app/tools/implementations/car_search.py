@@ -11,7 +11,10 @@ class CarSearchInput(BaseModel):
 
 class CarSearchTool(BaseTool):
     name = "search_cars"
-    description = "Searches for matching cars in inventory based on natural language query using vector embeddings."
+    description = (
+        "Searches for matching cars in inventory based on explicit queries. "
+        "Do NOT call for general car recommendation or budget preference queries; answer those directly."
+    )
     args_schema = CarSearchInput
 
     async def run(self, query: str, top_k: int = 3) -> list:
